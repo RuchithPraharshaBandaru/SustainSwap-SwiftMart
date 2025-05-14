@@ -63,7 +63,7 @@
 
     async function fetchCart() {
       try {
-        const response = await fetch("http://localhost:8000/api/v1/user/cart", {
+        const response = await fetch("/api/v1/user/cart", {
           method: "POST",
           credentials: "include",
         });
@@ -113,7 +113,7 @@
 
     async function AddToCart(productId) {
       try {
-        const response = await fetch(`http://localhost:8000/api/v1/user/cart/add/${productId}`, {
+        const response = await fetch(`/api/v1/user/cart/add/${productId}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
@@ -133,7 +133,7 @@
 
     async function removeFromCart(productId) {
       try {
-        const response = await fetch(`http://localhost:8000/api/v1/user/cart/remove/${productId}`, {
+        const response = await fetch(`/api/v1/user/cart/remove/${productId}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
@@ -153,7 +153,7 @@
 
     async function removeFromCartPermanent(productId) {
       try {
-        const response = await fetch(`http://localhost:8000/api/v1/user/cart/remove/${productId}`, {
+        const response = await fetch(`/api/v1/user/cart/remove/${productId}`, {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
           credentials: "include",

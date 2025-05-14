@@ -54,8 +54,8 @@
    async function deleteCustomer (id) {
       if (confirm("Are you sure you want to delete this customer?")) {
        
-      const response =   await fetch(`http://localhost:8000/api/v1/admin/customer/${id}`,{
-          method:"Delete",
+      const response =   await fetch(`/api/v1/admin/customer/${id}`,{
+          method:"DELETE",
           
         });
        getCustomer()
@@ -63,7 +63,7 @@
     }
 
     async function getCustomer(){
-      const response = await fetch("http://localhost:8000/api/v1/admin/customer/details",{
+      const response = await fetch("/api/v1/admin/customer/details",{
         method:"GET"
       });
       const data = await response.json();

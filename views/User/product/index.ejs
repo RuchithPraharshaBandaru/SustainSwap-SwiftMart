@@ -116,7 +116,7 @@
   
       async function AddToCart(productId) {
         try {
-          const response = await fetch(`http://localhost:8000/api/v1/user/cart/add/${productId}`, {
+          const response = await fetch(`/api/v1/user/cart/add/${productId}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "include",

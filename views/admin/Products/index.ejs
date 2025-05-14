@@ -79,7 +79,7 @@
 
 
     async function getProducts() {
-      const response = await fetch("http://localhost:8000/api/v1/admin/products/details", { method: "GET" });
+      const response = await fetch("/api/v1/admin/products/details", { method: "GET" });
       const data = await response.json();
       console.log(data);
       displayCustomers(data.products);
@@ -128,9 +128,9 @@
     }
 
     async function deleteCustomer(id) {
-      if (confirm("Are you sure you want to delete this customer?")) {
+      if (confirm("Are you sure you want to delete this product?")) {
         try {
-          await fetch(`http://localhost:8000/api/v1/admin/product/${id}`, { method: "DELETE" });
+          await fetch(`/api/v1/admin/product/${id}`, { method: "DELETE" });
           getProducts();
         } catch (error) {
           alert("Failed to delete product");

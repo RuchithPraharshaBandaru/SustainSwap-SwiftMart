@@ -88,14 +88,19 @@
 
     async function fetchAndRenderProducts(filter = {}) {
       try {
-        let url = new URL("http://localhost:8000/api/v1/user/products/filter");
+        const basePath = "/api/v1/user/products/filter";
+        let queryParams = new URLSearchParams();
 
         Object.keys(filter).forEach(key => {
           if (filter[key]) {
-            url.searchParams.append(key, filter[key]);
+            queryParams.append(key, filter[key]);
           }
         });
-        const response = await fetch(url, {
+
+        const queryString = queryParams.toString();
+        const fullPath = queryString ? `${basePath}?${queryString}` : basePath;
+
+        const response = await fetch(fullPath, {
           method: "GET",
           credentials: 'include'
         });

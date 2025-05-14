@@ -7,6 +7,12 @@ services:
     envVars:
       - key: MONGODB_URL
         value: mongodb+srv://tejaspagare1625:ffsdproject@cluster0.ha0yl.mongodb.net/
+      - key: SESSION_SECRET
+        generateValue: true # Render will generate a random string for this
+      - key: CLIENT_ORIGIN
+        value: https://sustainswap-swiftmart.onrender.com # e.g., https://your-app-name.onrender.com
+      - key: NODE_ENV
+        value: production
       # Add other environment variables here if needed, for example:
       # - key: SESSION_SECRET
       #   generateValue: true # Render will generate a random string

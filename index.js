@@ -19,16 +19,27 @@ dotenv.config({});
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Configure CORS to use an environment variable for the client origin
+const clientOrigin = process.env.CLIENT_ORIGIN || "http://localhost:8000";
+
 app.use(
   cors({
-    origin: "http://localhost:8000",
+    origin: clientOrigin,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
+// Configure session to use an environment variable for the secret
+const sessionSecret = process.env.SESSION_SECRET || "secret-swiftmart";
+if (sessionSecret === "secret-swiftmart" && process.env.NODE_ENV === "production") {
+  console.warn("WARNING: Using default session secret in production! Please set a strong SESSION_SECRET environment variable.");
+}
+
 app.use(session({
-  secret: "secret-swiftmart",
+  secret: sessionSecret,
   resave: false,
   saveUninitialized: true,
   cookie: { maxAge: 600000 },

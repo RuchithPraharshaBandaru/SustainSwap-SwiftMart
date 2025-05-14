@@ -1,7 +1,6 @@
 import express from 'express';
 const app = express();
 import session from 'express-session';
-import MongoStore from 'connect-mongo';
 import path from "path"
 import expressLayouts from 'express-ejs-layouts'
 import userController from "./routes/user.js"
@@ -17,6 +16,20 @@ import cors from "cors"
 import cookieParser from "cookie-parser";
 import multer from "multer"
 dotenv.config({});
+
+// Log critical environment variables at startup
+console.log("--- Environment Variables (at startup) ---");
+console.log("MONGODB_URL:", process.env.MONGODB_URL ? "SET" : "NOT SET or EMPTY");
+// To avoid logging the actual secret, we just check if it's set, 
+// but for MONGODB_URL, seeing if it's set is crucial for the MongoStore error.
+// If MONGODB_URL is logged as "SET", but you still get an error, 
+// you might want to temporarily log the actual string to ensure it's not malformed, 
+// but be sure to remove that log afterward for security.
+console.log("SESSION_SECRET:", process.env.SESSION_SECRET ? "SET" : "NOT SET or EMPTY");
+console.log("CLIENT_ORIGIN:", process.env.CLIENT_ORIGIN);
+console.log("NODE_ENV:", process.env.NODE_ENV);
+console.log("PORT:", process.env.PORT);
+console.log("-----------------------------------------");
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -39,17 +52,11 @@ if (sessionSecret === "secret-swiftmart" && process.env.NODE_ENV === "production
   console.warn("WARNING: Using default session secret in production! Please set a strong SESSION_SECRET environment variable.");
 }
 
-// Configure session to use MongoStore
 app.use(session({
   secret: sessionSecret,
   resave: false,
   saveUninitialized: true,
-  store: MongoStore.create({
-    mongoUrl: process.env.MONGODB_URL,
-    collectionName: 'sessions',
-    ttl: 14 * 24 * 60 * 60
-  }),
-  cookie: { maxAge: 14 * 24 * 60 * 60 * 1000 },
+  cookie: { maxAge: 600000 }, 
 }))
 app.use(express.json());
 app.use(cookieParser());

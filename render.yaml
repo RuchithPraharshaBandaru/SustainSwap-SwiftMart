@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: ffsd-main-project
+    env: node
+    buildCommand: npm install
+    startCommand: node index.js
+    envVars:
+      - key: MONGODB_URL
+        value: mongodb+srv://tejaspagare1625:ffsdproject@cluster0.ha0yl.mongodb.net/
+      # Add other environment variables here if needed, for example:
+      # - key: SESSION_SECRET
+      #   generateValue: true # Render will generate a random string
+      # - key: NODE_ENV
+      #   value: production 

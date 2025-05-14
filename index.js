@@ -1,6 +1,7 @@
 import express from 'express';
 const app = express();
 import session from 'express-session';
+import MongoStore from 'connect-mongo';
 import path from "path"
 import expressLayouts from 'express-ejs-layouts'
 import userController from "./routes/user.js"
@@ -38,11 +39,17 @@ if (sessionSecret === "secret-swiftmart" && process.env.NODE_ENV === "production
   console.warn("WARNING: Using default session secret in production! Please set a strong SESSION_SECRET environment variable.");
 }
 
+// Configure session to use MongoStore
 app.use(session({
   secret: sessionSecret,
   resave: false,
   saveUninitialized: true,
-  cookie: { maxAge: 600000 },
+  store: MongoStore.create({
+    mongoUrl: process.env.MONGODB_URL,
+    collectionName: 'sessions',
+    ttl: 14 * 24 * 60 * 60
+  }),
+  cookie: { maxAge: 14 * 24 * 60 * 60 * 1000 },
 }))
 app.use(express.json());
 app.use(cookieParser());

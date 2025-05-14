@@ -15,21 +15,11 @@ import dotenv from "dotenv";
 import cors from "cors"
 import cookieParser from "cookie-parser";
 import multer from "multer"
-dotenv.config({});
 
-// Log critical environment variables at startup
-console.log("--- Environment Variables (at startup) ---");
-console.log("MONGODB_URL:", process.env.MONGODB_URL ? "SET" : "NOT SET or EMPTY");
-// To avoid logging the actual secret, we just check if it's set, 
-// but for MONGODB_URL, seeing if it's set is crucial for the MongoStore error.
-// If MONGODB_URL is logged as "SET", but you still get an error, 
-// you might want to temporarily log the actual string to ensure it's not malformed, 
-// but be sure to remove that log afterward for security.
-console.log("SESSION_SECRET:", process.env.SESSION_SECRET ? "SET" : "NOT SET or EMPTY");
-console.log("CLIENT_ORIGIN:", process.env.CLIENT_ORIGIN);
-console.log("NODE_ENV:", process.env.NODE_ENV);
-console.log("PORT:", process.env.PORT);
-console.log("-----------------------------------------");
+// Only run dotenv.config() in non-production environments
+if (process.env.NODE_ENV !== 'production') {
+  dotenv.config({});
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

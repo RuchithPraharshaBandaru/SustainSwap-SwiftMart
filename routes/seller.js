@@ -252,12 +252,12 @@ router.delete("/product/:id", isAuthenticated, async (req, res) => {
 
 router.get("/account", isAuthenticated, async (req, res) => {
   const seller = await Seller.findById(req.userId);
-  res.render("Seller/profile/show.ejs", { title: 'Account', role: req.role, seller });
+  res.render("seller/profile/show.ejs", { title: 'Account', role: req.role, seller });
 });
 
 router.get("/account/update", isAuthenticated, async (req, res) => {
   const seller = await Seller.findById(req.userId);
-  res.render("Seller/profile/index.ejs", { title: 'Account', role: req.role, seller });
+  res.render("seller/profile/index.ejs", { title: 'Account', role: req.role, seller });
 });
 router.post("/account/update", isAuthenticated, async (req, res) => {
   const { name, gstn, email } = req.body;

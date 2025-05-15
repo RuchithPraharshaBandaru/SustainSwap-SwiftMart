@@ -52,50 +52,54 @@
           <h3 class="text-lg font-semibold text-green-700 mb-4">Billing Address</h3>
           <div id="address-view">
             <p class="p-2 border rounded mb-2" id="address">
-              <%= user.Address.plotno %>, <%= user.Address.street %>, <%= user.Address.city %>, <%= user.Address.state %> - <%= user.Address.pincode %>
+              <%= user.Address && user.Address.plotno ? user.Address.plotno : 'N/A' %>, 
+              <%= user.Address && user.Address.street ? user.Address.street : 'N/A' %>, 
+              <%= user.Address && user.Address.city ? user.Address.city : 'N/A' %>, 
+              <%= user.Address && user.Address.state ? user.Address.state : 'N/A' %> - 
+              <%= user.Address && user.Address.pincode ? user.Address.pincode : 'N/A' %>
             </p>
-            <p class="p-2 border rounded mb-2" id="phone">Phone: <%= user.Address.phone %></p>
+            <p class="p-2 border rounded mb-2" id="phone">Phone: <%= user.Address && user.Address.phone ? user.Address.phone : 'N/A' %></p>
             <button id="edit-address" class="bg-blue-500 text-white py-1 px-3 rounded hover:bg-blue-600">Edit</button>
           </div>
           <div id="address-edit" class="hidden">
             <input 
               id="plotno" 
-              value="<%= user.Address.plotno %>" 
+              value="<%= user.Address && user.Address.plotno ? user.Address.plotno : '' %>" 
               class="w-full p-2 mb-2 border rounded" 
               placeholder="Plot/House Number"
               required 
             />
             <input 
               id="street" 
-              value="<%= user.Address.street %>" 
+              value="<%= user.Address && user.Address.street ? user.Address.street : '' %>" 
               class="w-full p-2 mb-2 border rounded" 
               placeholder="Street Name/Area"
               required 
             />
             <input 
               id="city" 
-              value="<%= user.Address.city %>" 
+              value="<%= user.Address && user.Address.city ? user.Address.city : '' %>" 
               class="w-full p-2 mb-2 border rounded" 
               placeholder="City"
               required 
             />
             <input 
               id="state" 
-              value="<%= user.Address.state %>" 
+              value="<%= user.Address && user.Address.state ? user.Address.state : '' %>" 
               class="w-full p-2 mb-2 border rounded" 
               placeholder="State"
               required 
             />
             <input 
               id="pincode" 
-              value="<%= user.Address.pincode %>" 
+              value="<%= user.Address && user.Address.pincode ? user.Address.pincode : '' %>" 
               class="w-full p-2 mb-2 border rounded" 
               placeholder="PIN Code (6 digits)"
               required 
             />
             <input 
               id="phone-input" 
-              value="<%= user.Address.phone %>" 
+              value="<%= user.Address && user.Address.phone ? user.Address.phone : '' %>" 
               class="w-full p-2 mb-2 border rounded" 
               placeholder="Phone Number (10 digits)"
               required 
@@ -148,7 +152,7 @@
               <h4 class="text-md font-semibold text-green-700 mb-2">User Details</h4>
               <div class="w-full p-2 mb-2 border rounded"><%= user.firstname %> <%= user.lastname %></div>
               <div class="w-full p-2 mb-2 border rounded"><%= user.email %></div>
-              <div class="w-full p-2 mb-2 border rounded"><%= user.Address.phone %></div>
+              <div class="w-full p-2 mb-2 border rounded"><%= user.Address && user.Address.phone ? user.Address.phone : 'N/A' %></div>
             </div>
           </div>
   
@@ -156,7 +160,11 @@
           <div class="mt-6">
             <h4 class="text-md font-semibold text-green-700 mb-2">Shipping Address</h4>
             <p class="p-2 border rounded mb-2" id="summary-address">
-              <%= user.Address.plotno %>, <%= user.Address.street %>, <%= user.Address.city %>, <%= user.Address.state %> - <%= user.Address.pincode %>
+              <%= user.Address && user.Address.plotno ? user.Address.plotno : 'N/A' %>, 
+              <%= user.Address && user.Address.street ? user.Address.street : 'N/A' %>, 
+              <%= user.Address && user.Address.city ? user.Address.city : 'N/A' %>, 
+              <%= user.Address && user.Address.state ? user.Address.state : 'N/A' %> - 
+              <%= user.Address && user.Address.pincode ? user.Address.pincode : 'N/A' %>
             </p>
           </div>
   
@@ -190,9 +198,26 @@
             for (const id of fields) {
               if (!document.getElementById(id).value.trim()) return false;
             }
+            // Pincode must be 6 digits, phone must be 10 digits
             return /^\d{6}$/.test(document.getElementById('pincode').value) && /^\d{10}$/.test(document.getElementById('phone-input').value);
           } else {
-            return document.getElementById('address').innerText.trim() !== '' && document.getElementById('phone').innerText.includes('Phone:');
+            // When not editing, check if displayed values are present and not 'N/A'
+            const plotno = document.getElementById('address').innerText.split(',')[0]?.trim();
+            const street = document.getElementById('address').innerText.split(',')[1]?.trim();
+            const city = document.getElementById('address').innerText.split(',')[2]?.trim();
+            const stateAndPincode = document.getElementById('address').innerText.split(',')[3]?.trim();
+            const phoneText = document.getElementById('phone').innerText.replace('Phone:', '').trim();
+
+            if (!stateAndPincode || !stateAndPincode.includes('-')) return false; // Basic format check
+            const state = stateAndPincode.split('-')[0]?.trim();
+            const pincode = stateAndPincode.split('-')[1]?.trim();
+
+            const requiredFields = [plotno, street, city, state, pincode, phoneText];
+            for (const field of requiredFields) {
+              if (!field || field === 'N/A') return false;
+            }
+            // Also validate pincode and phone format if they are not 'N/A'
+            return /^\d{6}$/.test(pincode) && /^\d{10}$/.test(phoneText);
           }
         };
   
@@ -229,7 +254,10 @@
         document.getElementById('back-to-address').addEventListener('click', () => tabButtons[1].click());
   
         document.getElementById('place-order').addEventListener('click', async () => {
-          if (!validateAddress()) return alert('Please ensure all address fields are filled before placing the order.');
+          if (!validateAddress()) {
+            alert('Please ensure all address fields are filled correctly and are not N/A before placing the order.');
+            return;
+          }
   
           let address = {};
           const editing = !document.getElementById('address-edit').classList.contains('hidden');
@@ -243,16 +271,18 @@
               phone: document.getElementById('phone-input').value.trim()
             };
           } else {
+            // Values should be valid here due to the improved validateAddress
             const parts = document.getElementById('address').innerText.split(',');
             const phone = document.getElementById('phone').innerText.replace('Phone:', '').trim();
-            const [state, pincode] = parts[3].split('-');
+            const stateAndPincode = parts[3].split('-'); // parts[3] should exist and be formatted
+            
             address = {
               plotno: parts[0]?.trim(),
               street: parts[1]?.trim(),
               city: parts[2]?.trim(),
-              state: state?.trim(),
-              pincode: pincode?.trim(),
-              phone
+              state: stateAndPincode[0]?.trim(),
+              pincode: stateAndPincode[1]?.trim(),
+              phone: phone
             };
           }
   

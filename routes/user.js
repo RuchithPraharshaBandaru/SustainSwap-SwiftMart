@@ -234,25 +234,38 @@ router.get("/dashboard/sellproduct", isAuthenticated, async (req, res) => {
 router.get("/dashboard", isAuthenticated, async (req, res) => {
   const userId = req.userId;
   console.log(userId);
-  
-  const order = await UserHistory.findOne({ userId })
-    .populate({
-      path: "userId",
-      select: "firstname lastname email",
-      populate: {
-        path: "cart"
-      }
-    })
-    .populate({
-      path: "orders",
-      populate: {
-        path: "products.productId", // 👈 correct path
-        model: "Product"            // 👈 use correct model name
-      }
-    });
 
-  console.log(order);
-  res.render("User/dashboard/index.ejs", { title: "Dashboard", role: "user", order });
+  try {
+    const user = await User.findById(userId).select("firstname lastname email"); // Fetch user details
+
+    if (!user) {
+      // This case should ideally not happen if isAuthenticated works correctly
+      // and req.userId is valid, but good to handle.
+      return res.status(404).send("User not found");
+    }
+
+    const orderHistory = await UserHistory.findOne({ userId })
+      .populate({
+        path: "orders",
+        populate: {
+          path: "products.productId",
+          model: "Product"
+        }
+      });
+
+    // orderHistory might be null if no orders yet.
+    // The template will need to handle if orderHistory or orderHistory.orders is null/empty.
+    console.log(orderHistory); 
+    res.render("User/dashboard/index.ejs", { 
+      title: "Dashboard", 
+      role: "user", 
+      user, // Pass the user object
+      order: orderHistory // Pass the orderHistory object (could be null)
+    });
+  } catch (err) {
+    console.error("Error in /dashboard route:", err);
+    res.status(500).send("Server Error");
+  }
 });
 
 
@@ -386,25 +399,16 @@ router.post('/sell', isAuthenticated,upload.single('photos'), async (req, res) =
 // Add this route for filtered products
 router.get("/products/filter", isAuthenticated, async (req, res) => {
   try {
-    const { category, material, gender, size, minPrice, maxPrice } = req.query;
+    // Client sends `category` for fabric-like filtering (e.g., "Silk", "Cotton")
+    // Client sends `minPrice`, `maxPrice` for price.
+    // The `material`, `gender`, `size` query params from backend seem unused by current client-side script.
+    const { category, minPrice, maxPrice } = req.query;
     
-    // Build filter object
-    const filter = {};
+    const filter = { verified: true }; // Always filter for verified products
     
     if (category) {
-      filter.category = category;
-    }
-    
-    if (material) {
-      filter.fabric = material;
-    }
-    
-    if (gender) {
-      filter.gender = gender;
-    }
-    
-    if (size) {
-      filter.size = size;
+      // Use case-insensitive regex for category matching
+      filter.category = new RegExp(`^${category}$`, 'i'); 
     }
     
     // Add price range filter if provided
@@ -414,15 +418,17 @@ router.get("/products/filter", isAuthenticated, async (req, res) => {
       if (maxPrice) filter.price.$lte = Number(maxPrice);
     }
 
-    // Find products with applied filters
+    // For debugging what the final query looks like
+    console.log("Filtering products with query:", filter);
+
     const filteredProducts = await Product.find(filter);
 
-    // Return filtered products as JSON
     res.status(200).json({
       success: true,
       products: filteredProducts
     });
   } catch (error) {
+    console.error("Error in /products/filter:", error);
     res.status(500).json({
       success: false,
       message: "Error filtering products",

@@ -1,5 +1,5 @@
 import express from 'express';
-import { accountRenderController, accountShowRenderController, addressRenderController, addToCartController, blogController, blogRenderController, cartRenderController, deleteFromCartController, HomePageController, loginController, loginPageRenderController, logoutController, removeFromCartController, renderCartController, shopController, signupController, signupPageRenderController, vendorsController } from '../controller/user.js';
+import { accountRenderController, accountShowRenderController, addressRenderController, addToCartController, blogController, blogRenderController, cartRenderController, deleteFromCartController, HomePageController, loginController, loginPageRenderController, logoutController, removeFromCartController, renderCartController, shopController, signupController, signupPageRenderController, vendorsController, deleteInvalidCartItemController } from '../controller/user.js';
 import User from '../models/user.js';
 import isAuthenticated from '../middleware/isAuthenticated.js';
 import { title } from 'process';
@@ -83,11 +83,12 @@ router.get("/shop", isAuthenticated, shopController);
 router.get("/vendors", isAuthenticated, vendorsController)
 router.get('/blog', isAuthenticated, blogRenderController);
 router.get('/contact', isAuthenticated, (req, res) => res.render('User/contact/index.ejs', { title: 'Contact Page', role: "user" }));
-router.get("/cart", cartRenderController)
+router.get("/cart", isAuthenticated, cartRenderController);
 router.post("/cart", isAuthenticated, renderCartController)
 router.post("/cart/add/:id", isAuthenticated, addToCartController)
 router.post("/cart/remove/:id", isAuthenticated, removeFromCartController)
-router.delete("/cart/remove/:id", isAuthenticated, deleteFromCartController);
+router.delete("/cart/remove/:id", isAuthenticated, deleteFromCartController)
+router.delete("/cart/item/:cartItemId", isAuthenticated, deleteInvalidCartItemController)
 router.get("/checkout",isAuthenticated,async(req,res)=>{
   const user = await User.findById(req.userId).populate("cart.productId");
   console.log(user);
@@ -105,7 +106,7 @@ router.get("/checkout",isAuthenticated,async(req,res)=>{
     }
   ]);
 
-  const extra = result[0].totalEstimatedValue || 0;
+  const extra = (result && result.length > 0 && result[0].totalEstimatedValue) ? result[0].totalEstimatedValue : 0;
   return res.render("User/payment/index.ejs",{title:"Checkout Page",role:"user",user,total,extra})
 });
 router.post("/payment", isAuthenticated, async (req, res) => {
@@ -144,7 +145,7 @@ console.log(address);
       }
     ]);
   
-    const extra = result[0].totalEstimatedValue || 0;
+    const extra = (result && result.length > 0 && result[0].totalEstimatedValue) ? result[0].totalEstimatedValue : 0;
 
     let totalAmount = products.reduce(
       (acc, item) => acc + item.price * item.quantity,

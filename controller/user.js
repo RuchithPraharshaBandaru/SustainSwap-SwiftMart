@@ -93,9 +93,10 @@ const renderCartController = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-      res.json({ cart: user.cart });
+    res.json({ cart: user.cart });
   } catch (error) {
-
+    console.error("Error in POST /cart (renderCartController):", error);
+    res.status(500).json({ message: "Server error fetching cart data", error: error.message });
   }
 }
 
@@ -265,4 +266,40 @@ const vendorsController = (req,res)=>{
 
 const blogRenderController = (req, res) => res.render('User/blog/index.ejs', { title: 'Blog Page', role: req.role })
 
-export {loginController ,signupController,logoutController,renderCartController,addToCartController,removeFromCartController,deleteFromCartController,loginPageRenderController,signupPageRenderController,accountRenderController,addressRenderController,blogController,shopController,vendorsController,blogRenderController,cartRenderController,HomePageController,accountShowRenderController}
+// New controller to delete a cart item by its own _id
+const deleteInvalidCartItemController = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const cartItemId = req.params.cartItemId;
+
+    if (!cartItemId) {
+      return res.status(400).json({ success: false, message: "Cart item ID is required." });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found." });
+    }
+
+    // Pull the item from the cart array by its _id
+    // Mongoose $pull operator works well here
+    const updateResult = await User.updateOne(
+      { _id: userId },
+      { $pull: { cart: { _id: cartItemId } } }
+    );
+
+    if (updateResult.modifiedCount === 0) {
+      // This could mean the item was already removed or ID was wrong, but for a user, it effectively means it's gone.
+      // For more robust error handling, you might check if the item existed before trying to pull.
+      return res.status(404).json({ success: false, message: "Cart item not found or already removed." });
+    }
+
+    res.json({ success: true, message: "Item removed from cart." });
+
+  } catch (error) {
+    console.error("Error in deleteInvalidCartItemController:", error);
+    res.status(500).json({ success: false, message: "Server error removing item from cart.", error: error.message });
+  }
+};
+
+export {loginController ,signupController,logoutController,renderCartController,addToCartController,removeFromCartController,deleteFromCartController,loginPageRenderController,signupPageRenderController,accountRenderController,addressRenderController,blogController,shopController,vendorsController,blogRenderController,cartRenderController,HomePageController,accountShowRenderController, deleteInvalidCartItemController}

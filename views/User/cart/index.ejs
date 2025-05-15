@@ -90,23 +90,37 @@
         `;
       } else {
         cart.forEach((item) => {
-          cartContainer.innerHTML += `
-            <div class="grid grid-cols-4 items-center gap-4 border-b pb-4">
-              <div class="w-[100px] h-[100px] overflow-hidden">
-                <img class="h-full w-full object-cover object-top rounded" src="${item?.productId?.image}" alt="">
+          // Check if item and item.productId are not null
+          if (item && item.productId) {
+            cartContainer.innerHTML += `
+              <div class="grid grid-cols-4 items-center gap-4 border-b pb-4">
+                <div class="w-[100px] h-[100px] overflow-hidden">
+                  <img class="h-full w-full object-cover object-top rounded" src="${item.productId.image || '/placeholder-image.png'}" alt="${item.productId.title || 'Product image'}">
+                </div>
+                <div>
+                  <p class="font-semibold tracking-tighter text-sm">${item.productId.title || 'Product Title Unavailable'}</p>
+                  <button class="text-red-600 text-sm" onclick="removeFromCartPermanent('${item.productId._id}')">🗑 Remove</button>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <button class="px-2 py-1 bg-gray-200 rounded" onclick="removeFromCart('${item.productId._id}')">-</button>
+                  <span id="qty-${item.productId._id}" class="px-4">${item.quantity || 0}</span>
+                  <button class="px-2 py-1 bg-gray-200 rounded" onclick="AddToCart('${item.productId._id}')">+</button>
+                </div>
+                <p class="font-semibold text-lg">Rs. ${(item.productId.price || 0) * (item.quantity || 0)}</p>
               </div>
-              <div>
-                <p class="font-semibold tracking-tighter text-sm">${item?.productId?.title}</p>
-                <button class="text-red-600 text-sm" onclick="removeFromCartPermanent('${item?.productId?._id}')">🗑 Remove</button>
+            `;
+          } else {
+            // Optionally handle items where productId is null (e.g., display a message or skip)
+            console.warn("Cart item found with null productId:", item); 
+            cartContainer.innerHTML += `
+              <div class="grid grid-cols-4 items-center gap-4 border-b pb-4 text-red-500">
+                <div class="md:col-span-3">An item in your cart is no longer available and could not be displayed.</div>
+                <div class="md:col-span-1 flex justify-end">
+                  <button class="text-white bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-sm" onclick="removeInvalidCartItem('${item._id}')">Remove</button>
+                </div>
               </div>
-              <div class="flex items-center space-x-2">
-                <button class="px-2 py-1 bg-gray-200 rounded" onclick="removeFromCart('${item.productId._id}')">-</button>
-                <span id="qty-${item?.productId?._id}" class="px-4">${item?.quantity}</span>
-                <button class="px-2 py-1 bg-gray-200 rounded" onclick="AddToCart('${item?.productId?._id}')">+</button>
-              </div>
-              <p class="font-semibold text-lg">Rs. ${item?.productId?.price * item?.quantity}</p>
-            </div>
-          `;
+            `;
+          }
         });
       }
     }
@@ -168,6 +182,30 @@
         }
       } catch (error) {
         showNotification("Error removing item!", "error");
+      }
+    }
+
+    // Add a new function to handle removing invalid cart items by their own _id
+    async function removeInvalidCartItem(cartItemId) {
+      try {
+        // We'll need a new endpoint or modify an existing one to handle removal by cart item _id
+        // For now, let's assume a new endpoint DELETE /api/v1/user/cart/item/:cartItemId
+        const response = await fetch(`/api/v1/user/cart/item/${cartItemId}`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          showNotification(data.message || "Invalid item removed!", "success");
+          fetchCart(); // Refresh the cart
+        } else {
+          showNotification(data.message || "Failed to remove invalid item!", "error");
+        }
+      } catch (error) {
+        showNotification("Error removing invalid item!", "error");
+        console.error("Error in removeInvalidCartItem:", error);
       }
     }
 

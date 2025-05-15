@@ -74,7 +74,7 @@ router.get("/profile", industryAuth, async (req, res) => {
         })
       }
   
-      res.render("Industry/Profile/profile", {
+      res.render("Industry/profile/profile", {
         title: "Profile",
         role: "Industry",
         industryName: industry.companyName,

@@ -49,7 +49,7 @@ router.get('/home', industryAuth, async (req, res) => {
           }
         ]);
          console.log(req.industry);
-        res.render('Industry/homepage/home', { title: 'Home', role:'User' ,combinations });
+        res.render('Industry/homepage/home', { title: 'Home', role:'Industry' ,combinations });
     } catch (error) {
         console.error("Error fetching combinations with details:", error);
         res.status(500).json({ message: "Internal Server Error", error });
